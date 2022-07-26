@@ -6,7 +6,7 @@ Telegram bot that scrapes Djinni for number of vacancies and candidates
 
 ![](static/screenshots/screen1.jpg)
 
-![](static/screenshots/screen1.jpg)
+![](static/screenshots/screen2.jpg)
 
 # Technologies
 * python 3
