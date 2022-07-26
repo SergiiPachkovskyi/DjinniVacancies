@@ -4,9 +4,9 @@ Djinni Vacancies
 # General info
 Telegram bot witсh scraped Djinni for number of vacancies and candidates
 
-![](static/screenshots/screen1.png)
+![](static\screenshots\screen1.jpg)
 
-![](static/screenshots/screen2.png)
+![](static\screenshots\screen2.jpg)
 
 # Technologies
 * python 3
