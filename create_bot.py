@@ -12,8 +12,8 @@ import config
 storage = MemoryStorage()
 
 
-# bot = Bot(token=os.getenv('TOKEN'))
-bot = Bot(token=config.TOKEN)
+bot = Bot(token=os.getenv('TOKEN'))
+# bot = Bot(token=config.TOKEN)
 
 
 dp = Dispatcher(bot, storage=storage)
