@@ -111,7 +111,7 @@ async def fetch_data(message: Message, state: FSMContext):
                  + ', candidates - ' + candidates_data['senior_number']
         await message.answer(answer, reply_markup=speciality_kb)
         with redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB) as redis_client:
-            redis_client.set(name=redis_key, value=answer)
+            redis_client.set(name=redis_key, value=answer, ex=60)
 
     except BotBlocked:
         print('Forbidden: bot was blocked by the user')
