@@ -2,14 +2,24 @@
 Module for handlers
 """
 
+import os
+
+import redis
 from aiogram.dispatcher import Dispatcher, FSMContext
 from aiogram.types import Message
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.exceptions import BotBlocked
 
+import config
 from create_bot import bot
 from keyboards import start_kb, speciality_kb, additional_kb
 from scrapers import get_vacancies, get_candidates
+
+
+REDIS_HOST = os.getenv('REDIS_HOST')
+# REDIS_HOST = config.REDIS_HOST
+REDIS_PORT = 6379
+REDIS_DB = 0
 
 
 class FSMMain(StatesGroup):
@@ -78,24 +88,31 @@ async def ask_additional_parameter(message: Message, state: FSMContext):
 
 async def fetch_data(message: Message, state: FSMContext):
     try:
+        async with state.proxy() as data:
+            speciality = data['speciality']
+        await FSMMain.speciality.set()
+
+        redis_key = speciality + '.' + message.text
+        with redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB) as redis_client:
+            if redis_client.exists(redis_key):
+                await message.answer(redis_client.get(name=redis_key).decode('utf-8'), reply_markup=speciality_kb)
+                return
+
         vacancies_data = await get_vacancies(state, message.text)
         candidates_data = await get_candidates(state, message.text)
 
-        async with state.proxy() as data:
-            speciality = data['speciality']
+        answer = speciality.replace('/', '').upper() + ': vacancies - ' + vacancies_data['total_number'] \
+                 + ', candidates - ' + candidates_data['total_number'] + '\n' \
+                 + 'junior: vacancies - ' + vacancies_data['junior_number'] \
+                 + ', candidates - ' + candidates_data['junior_number'] + '\n' \
+                 + 'middle: vacancies - ' + vacancies_data['middle_number'] \
+                 + ', candidates - ' + candidates_data['middle_number'] + '\n' \
+                 + 'senior: vacancies - ' + vacancies_data['senior_number'] \
+                 + ', candidates - ' + candidates_data['senior_number']
+        await message.answer(answer, reply_markup=speciality_kb)
+        with redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB) as redis_client:
+            redis_client.set(name=redis_key, value=answer)
 
-        await FSMMain.speciality.set()
-        await message.answer(
-            speciality.replace('/', '').upper() + ': vacancies - ' + vacancies_data['total_number']
-            + ', candidates - ' + candidates_data['total_number'] + '\n'
-            'junior: vacancies - ' + vacancies_data['junior_number']
-            + ', candidates - ' + candidates_data['junior_number'] + '\n'
-            'middle: vacancies - ' + vacancies_data['middle_number']
-            + ', candidates - ' + candidates_data['middle_number'] + '\n'
-            'senior: vacancies - ' + vacancies_data['senior_number']
-            + ', candidates - ' + candidates_data['senior_number'],
-            reply_markup=speciality_kb
-        )
     except BotBlocked:
         print('Forbidden: bot was blocked by the user')
 
