@@ -12,6 +12,7 @@ Telegram bot that scrapes Djinni for number of vacancies and candidates
 * python 3
 * aiogram
 * beautifulsoup
+* redis
 
 # Setup
 To run the project install libraries specified in requirements.txt. 
